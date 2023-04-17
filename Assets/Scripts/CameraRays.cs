@@ -19,10 +19,13 @@ public class CameraRays : MonoBehaviour
     private bool _isMoving = false;
     private bool _isScaling = false;
 
+    private Vector3 _offsetColliderMouse;
+
 
     private void Awake()
     {
         _camera = GetComponent<Camera>();
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
     // Start is called before the first frame update
@@ -44,6 +47,8 @@ public class CameraRays : MonoBehaviour
                 if(_currentColliderTransform.CompareTag(EFFECTOR_CENTER_TAG_NAME))
                 {
                     _isMoving = true;
+                    //We get the distance between the collider and mouse position on World
+                    _offsetColliderMouse = _currentColliderTransform.parent.position - _camera.ScreenToWorldPoint(Input.mousePosition);
                 }
                 if(_currentColliderTransform.CompareTag(EFFECTOR_EDGE_TAG_NAME))
                 {
@@ -59,6 +64,7 @@ public class CameraRays : MonoBehaviour
         }
         if(_isMoving)
         {
+            
             DoMove();
         }
 
@@ -115,10 +121,12 @@ public class CameraRays : MonoBehaviour
     }
     private void DoMove() 
     {
+        //Mouse position on World
         Vector3 screenToWorldPosition = _camera.ScreenToWorldPoint(Input.mousePosition);// + new Vector3(0, 0, -_camera.transform.position.z));
         screenToWorldPosition.z = 0;
-        _currentColliderTransform.parent.position = screenToWorldPosition;
-        Debug.Log("moving");
+               
+        _currentColliderTransform.parent.position = screenToWorldPosition + _offsetColliderMouse;
+        //Debug.Log("moving");
     }
     private void DoScale()
     {
@@ -126,12 +134,16 @@ public class CameraRays : MonoBehaviour
         Vector2 MousePos = _camera.ScreenToWorldPoint(Input.mousePosition);
         //Debug.Log(Vector2.Distance(transformPos, MousePos));
         //Debug.Log("resize");
-        float modifiedRadius = 0f;
+        //float modifiedRadius = 0f;
         CircleShape circleShape = _currentColliderTransform.GetComponent<CircleShape>();
-        float circleRadius = circleShape.Radius;
-        modifiedRadius = Vector2.Distance(transformPos, MousePos);
+        if(circleShape != null)
+        {
+            circleShape.Radius = Mathf.Clamp(Vector2.Distance(transformPos, MousePos), 0.6f, 5f);
+        }
+        /*float circleRadius = circleShape.Radius;
+        modifiedRadius = Mathf.Clamp(Vector2.Distance(transformPos, MousePos),0.6f,5f);
         circleRadius = modifiedRadius;
-        circleShape.Radius = circleRadius;
-        Debug.Log(circleRadius);
+        circleShape.Radius = circleRadius;*/
+        //Debug.Log(circleShape.Radius);
     }
 }
